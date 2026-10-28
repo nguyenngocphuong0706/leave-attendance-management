@@ -10,7 +10,7 @@
         <div th:replace="~{fragments/layout :: sidebar('trangchu')}"></div>
 
         <main class="col-md-9 col-lg-10 p-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <h4>Xin chào, <span th:text="${profile.fullName}"></span></h4>
                     <table class="table mt-3 mb-0">
@@ -20,6 +20,35 @@
                         <tr><th>Quản lý trực tiếp</th><td th:text="${profile.managerName}"></td></tr>
                     </table>
                 </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <strong><i class="bi bi-calendar2-week"></i> Số ngày phép năm <span th:text="${nam}"></span></strong>
+                </div>
+                <table class="table mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Loại nghỉ</th>
+                        <th class="text-end">Được cấp</th>
+                        <th class="text-end">Đã dùng</th>
+                        <th class="text-end">Còn lại</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="b : ${soDu}">
+                        <td th:text="${b.leaveTypeName}"></td>
+                        <td class="text-end" th:text="${b.totalDays}"></td>
+                        <td class="text-end" th:text="${b.usedDays}"></td>
+                        <td class="text-end">
+                            <span class="badge text-bg-success" th:text="${b.remainingDays}"></span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(soDu)}">
+                        <td colspan="4" class="text-center text-muted py-3">Chưa có số ngày phép cho năm nay</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </main>
     </div>
