@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Người dùng')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('nguoidung')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <h4 class="mb-3" th:text="${tieuDe}">Tiêu đề</h4>
+
+            <div class="card shadow-sm" style="max-width: 600px;">
+                <div class="card-body">
+                    <form th:action="@{${action}}" th:object="${form}" method="post" novalidate>
+
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+                            <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Họ tên</label>
+                            <input type="text" th:field="*{fullName}" class="form-control"
+                                   th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'" autofocus>
+                            <div class="invalid-feedback" th:errors="*{fullName}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email (dùng để đăng nhập)</label>
+                            <input type="email" th:field="*{email}" class="form-control"
+                                   th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
+                                   th:readonly="${!laThemMoi}">
+                            <div class="invalid-feedback" th:errors="*{email}"></div>
+                            <div class="form-text" th:unless="${laThemMoi}">Không thể đổi email sau khi tạo.</div>
+                        </div>
+
+                        <div class="mb-3" th:if="${laThemMoi}">
+                            <label class="form-label">Mật khẩu</label>
+                            <input type="password" name="password" class="form-control"
+                                   th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:errors="*{password}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Vai trò</label>
+                            <select th:field="*{role}" class="form-select"
+                                    th:classappend="${#fields.hasErrors('role')} ? 'is-invalid'">
+                                <option value="">-- Chọn vai trò --</option>
+                                <option th:each="r : ${vaiTro}" th:value="${r}" th:text="${r}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{role}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phòng ban</label>
+                            <select th:field="*{departmentId}" class="form-select"
+                                    th:classappend="${#fields.hasErrors('departmentId')} ? 'is-invalid'">
+                                <option value="">-- Chưa có phòng ban --</option>
+                                <option th:each="d : ${phongBan}" th:value="${d.id}" th:text="${d.name}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{departmentId}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Quản lý trực tiếp</label>
+                            <select th:field="*{managerId}" class="form-select"
+                                    th:classappend="${#fields.hasErrors('managerId')} ? 'is-invalid'">
+                                <option value="">-- Không có --</option>
+                                <option th:each="q : ${quanLy}" th:value="${q.id}" th:text="${q.label}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{managerId}"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                        <a th:href="@{/admin/users}" class="btn btn-outline-secondary">Hủy</a>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

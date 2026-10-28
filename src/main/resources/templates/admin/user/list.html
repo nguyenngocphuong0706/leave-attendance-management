@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Người dùng')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('nguoidung')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="bi bi-people"></i> Quản lý người dùng</h4>
+                <a th:href="@{/admin/users/new}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Thêm người dùng
+                </a>
+            </div>
+
+            <div th:if="${thanhCong}" class="alert alert-success" th:text="${thanhCong}"></div>
+            <div th:if="${loi}" class="alert alert-danger" th:text="${loi}"></div>
+
+            <div class="card shadow-sm">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 60px">Mã</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                        <th>Vai trò</th>
+                        <th>Phòng ban</th>
+                        <th>Quản lý</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end" style="width: 190px">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="u : ${danhSach}">
+                        <td th:text="${u.id}"></td>
+                        <td th:text="${u.fullName}"></td>
+                        <td th:text="${u.email}"></td>
+                        <td><span class="badge text-bg-secondary" th:text="${u.role}"></span></td>
+                        <td th:text="${u.departmentName}"></td>
+                        <td th:text="${u.managerName}"></td>
+                        <td>
+                            <span th:if="${u.active}" class="badge text-bg-success">Hoạt động</span>
+                            <span th:unless="${u.active}" class="badge text-bg-danger">Đã khóa</span>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/admin/users/{id}/edit(id=${u.id})}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Sửa
+                            </a>
+                            <form th:action="@{/admin/users/{id}/toggle(id=${u.id})}" method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Bạn chắc chắn muốn đổi trạng thái tài khoản này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                        th:disabled="${u.email == tenNguoiDung}">
+                                    <i th:if="${u.active}" class="bi bi-lock"></i>
+                                    <i th:unless="${u.active}" class="bi bi-unlock"></i>
+                                    <span th:text="${u.active} ? 'Khóa' : 'Mở'"></span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>
