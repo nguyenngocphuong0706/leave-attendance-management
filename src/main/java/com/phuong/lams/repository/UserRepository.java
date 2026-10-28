@@ -13,4 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Kiểm tra email đã tồn tại chưa
     boolean existsByEmail(String email);
+
+    // Đếm số nhân viên của một phòng ban (dùng khi kiểm tra trước khi xóa phòng ban)
+    long countByDepartmentId(Long departmentId);
 }
