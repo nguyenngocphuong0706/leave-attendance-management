@@ -1,6 +1,7 @@
 package com.phuong.lams.controller;
 
 import com.phuong.lams.dto.UserForm;
+import com.phuong.lams.enums.Gender;
 import com.phuong.lams.enums.Role;
 import com.phuong.lams.exception.BusinessException;
 import com.phuong.lams.service.DepartmentService;
@@ -110,6 +111,7 @@ public class AdminUserController {
         model.addAttribute("tieuDe", tieuDe);
         model.addAttribute("action", action);
         model.addAttribute("laThemMoi", laThemMoi);
+        model.addAttribute("gioiTinh", Gender.values());
         model.addAttribute("vaiTro", Role.values());
         model.addAttribute("phongBan", departmentService.layDanhSach());
         model.addAttribute("quanLy", userService.layDanhSachQuanLy(loaiTruId));

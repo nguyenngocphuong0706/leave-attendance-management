@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Loại nghỉ phép')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('loainghi')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="bi bi-calendar-event"></i> Quản lý loại nghỉ phép</h4>
+                <a th:href="@{/admin/leave-types/new}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Thêm loại nghỉ
+                </a>
+            </div>
+
+            <div th:if="${thanhCong}" class="alert alert-success" th:text="${thanhCong}"></div>
+            <div th:if="${loi}" class="alert alert-danger" th:text="${loi}"></div>
+
+            <div class="card shadow-sm">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 70px">Mã</th>
+                        <th>Tên loại nghỉ</th>
+                        <th style="width: 150px">Số ngày mỗi năm</th>
+                        <th style="width: 130px">Áp dụng cho</th>
+                        <th style="width: 130px">Trạng thái</th>
+                        <th style="width: 320px" class="text-end">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="t : ${danhSach}">
+                        <td th:text="${t.id}"></td>
+                        <td th:text="${t.name}"></td>
+                        <td th:text="${t.daysPerYear}"></td>
+                        <td th:text="${t.appliesToLabel}"></td>
+                        <td>
+                            <span th:if="${t.active}" class="badge text-bg-success">Đang dùng</span>
+                            <span th:unless="${t.active}" class="badge text-bg-secondary">Ngừng dùng</span>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/admin/leave-types/{id}/edit(id=${t.id})}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Sửa
+                            </a>
+                            <form th:action="@{/admin/leave-types/{id}/toggle(id=${t.id})}" method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Bạn chắc chắn muốn đổi trạng thái loại nghỉ này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                    <i th:if="${t.active}" class="bi bi-pause-circle"></i>
+                                    <i th:unless="${t.active}" class="bi bi-play-circle"></i>
+                                    <span th:text="${t.active} ? 'Ngừng dùng' : 'Dùng lại'"></span>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/leave-types/{id}/delete(id=${t.id})}" method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Xóa loại nghỉ này? Chỉ xóa được khi chưa ai dùng ngày phép.');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(danhSach)}">
+                        <td colspan="6" class="text-center text-muted py-4">Chưa có loại nghỉ nào</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

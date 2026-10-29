@@ -1,5 +1,6 @@
 package com.phuong.lams.dto;
 
+import com.phuong.lams.enums.Gender;
 import com.phuong.lams.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -18,6 +19,9 @@ public class UserForm {
     @NotBlank(message = "Họ tên không được để trống")
     @Size(max = 100, message = "Họ tên tối đa 100 ký tự")
     private String fullName;
+
+    @NotNull(message = "Hãy chọn giới tính")
+    private Gender gender;
 
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không đúng định dạng")

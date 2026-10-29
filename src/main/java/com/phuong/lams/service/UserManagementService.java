@@ -26,6 +26,7 @@ public class UserManagementService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LeaveBalanceService leaveBalanceService;
 
     @Transactional(readOnly = true)
     public List<UserRow> layDanhSach() {
@@ -33,6 +34,7 @@ public class UserManagementService {
                 .map(u -> new UserRow(
                         u.getId(),
                         u.getFullName(),
+                        u.getGender() != null ? u.getGender().getLabel() : "Chưa có",
                         u.getEmail(),
                         u.getRole(),
                         u.getDepartment() != null ? u.getDepartment().getName() : "Chưa có",
@@ -57,6 +59,7 @@ public class UserManagementService {
         User user = timTheoId(id);
         UserForm form = new UserForm();
         form.setFullName(user.getFullName());
+        form.setGender(user.getGender());
         form.setEmail(user.getEmail());
         form.setRole(user.getRole());
         form.setDepartmentId(user.getDepartment() != null ? user.getDepartment().getId() : null);
@@ -80,7 +83,9 @@ public class UserManagementService {
         // Luôn băm mật khẩu trước khi lưu, không bao giờ lưu mật khẩu thô
         user.setPasswordHash(passwordEncoder.encode(matKhau));
         ganThongTin(user, form, null);
-        userRepository.save(user);
+        User daLuu = userRepository.save(user);
+        // Người mới được cấp ngay số ngày phép năm nay, cùng một transaction với việc tạo tài khoản
+        leaveBalanceService.capSoDuChoNguoiDung(daLuu);
     }
 
     // Email không được sửa vì đó là tên đăng nhập, nên ở đây bỏ qua form.getEmail()
@@ -88,7 +93,8 @@ public class UserManagementService {
     public void capNhat(Long id, UserForm form) {
         User user = timTheoId(id);
         ganThongTin(user, form, id);
-        // Không cần save(): dirty checking tự cập nhật khi kết thúc transaction
+        // Đổi giới tính có thể làm xuất hiện loại nghỉ mới áp dụng cho người này, nên bổ sung số dư còn thiếu
+        leaveBalanceService.capSoDuChoNguoiDung(user);
     }
 
     // Khóa hoặc mở khóa, trả về trạng thái mới (true là đang hoạt động)
@@ -105,6 +111,7 @@ public class UserManagementService {
     // Gán các thông tin chung của form vào entity (dùng cho cả thêm và sửa)
     private void ganThongTin(User user, UserForm form, Long idDangSua) {
         user.setFullName(form.getFullName().trim());
+        user.setGender(form.getGender());
         user.setRole(form.getRole());
         user.setDepartment(timPhongBan(form.getDepartmentId()));
         user.setManager(timQuanLy(form.getManagerId(), idDangSua));

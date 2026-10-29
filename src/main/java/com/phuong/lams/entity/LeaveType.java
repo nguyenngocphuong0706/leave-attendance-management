@@ -1,5 +1,6 @@
 package com.phuong.lams.entity;
 
+import com.phuong.lams.enums.Applicability;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,11 @@ public class LeaveType {
     // Số ngày được cấp mỗi năm cho loại nghỉ này
     @Column(name = "days_per_year", nullable = false)
     private int daysPerYear;
+
+    // Loại nghỉ áp dụng cho ai: tất cả, chỉ nam hoặc chỉ nữ
+    @Enumerated(EnumType.STRING)
+    @Column(name = "applies_to", nullable = false, length = 10)
+    private Applicability appliesTo = Applicability.ALL;
 
     // Loại nghỉ còn được sử dụng hay không
     @Column(nullable = false)

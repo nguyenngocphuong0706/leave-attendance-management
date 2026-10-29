@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Loại nghỉ phép')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('loainghi')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <h4 class="mb-3" th:text="${tieuDe}">Tiêu đề</h4>
+
+            <div class="card shadow-sm" style="max-width: 560px;">
+                <div class="card-body">
+                    <form th:action="@{${action}}" th:object="${form}" method="post" novalidate>
+
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+                            <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên loại nghỉ</label>
+                            <input type="text" th:field="*{name}" class="form-control"
+                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'" autofocus>
+                            <div class="invalid-feedback" th:errors="*{name}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Số ngày mỗi năm</label>
+                            <input type="number" th:field="*{daysPerYear}" class="form-control"
+                                   th:classappend="${#fields.hasErrors('daysPerYear')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:errors="*{daysPerYear}"></div>
+                            <div class="form-text">Chỉ áp dụng cho người dùng mới và năm mới. Số dư đã cấp không bị thay đổi.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Áp dụng cho</label>
+                            <select th:field="*{appliesTo}" class="form-select"
+                                    th:classappend="${#fields.hasErrors('appliesTo')} ? 'is-invalid'">
+                                <option th:each="d : ${doiTuong}" th:value="${d}" th:text="${d.label}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{appliesTo}"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                        <a th:href="@{/admin/leave-types}" class="btn btn-outline-secondary">Hủy</a>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

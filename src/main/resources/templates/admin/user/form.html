@@ -28,6 +28,16 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Giới tính</label>
+                            <select th:field="*{gender}" class="form-select"
+                                    th:classappend="${#fields.hasErrors('gender')} ? 'is-invalid'">
+                                <option value="">-- Chọn giới tính --</option>
+                                <option th:each="g : ${gioiTinh}" th:value="${g}" th:text="${g.label}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{gender}"></div>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Email (dùng để đăng nhập)</label>
                             <input type="email" th:field="*{email}" class="form-control"
                                    th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"

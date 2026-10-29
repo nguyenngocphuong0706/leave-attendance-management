@@ -2,6 +2,7 @@ package com.phuong.lams.repository;
 
 import com.phuong.lams.entity.LeaveBalance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -10,12 +11,24 @@ import java.util.List;
 // Truy vấn bảng leave_balances (số dư phép)
 public interface LeaveBalanceRepository extends JpaRepository<LeaveBalance, Long> {
 
-    // Số dư của một người trong một năm, lấy kèm loại nghỉ bằng một câu truy vấn
+    // Số dư của một người trong một năm, lấy kèm loại nghỉ và người dùng bằng một câu truy vấn
     @Query("""
             select b from LeaveBalance b
-            join fetch b.leaveType
-            where b.user.email = :email and b.year = :year
-            order by b.leaveType.id
+            join fetch b.leaveType lt
+            join fetch b.user u
+            where u.email = :email and b.year = :year
+            order by lt.id
             """)
     List<LeaveBalance> layTheoEmailVaNam(@Param("email") String email, @Param("year") int year);
+
+    // Người này đã có số dư cho loại nghỉ này trong năm này chưa
+    boolean existsByUserIdAndLeaveTypeIdAndYear(Long userId, Long leaveTypeId, int year);
+
+    // Đã có ai dùng ngày phép của loại nghỉ này chưa (dùng khi quyết định có cho xóa không)
+    boolean existsByLeaveTypeIdAndUsedDaysGreaterThan(Long leaveTypeId, int usedDays);
+
+    // Xóa toàn bộ số dư của một loại nghỉ (chỉ gọi khi chưa ai dùng)
+    @Modifying
+    @Query("delete from LeaveBalance b where b.leaveType.id = :leaveTypeId")
+    void xoaTheoLoaiNghi(@Param("leaveTypeId") Long leaveTypeId);
 }

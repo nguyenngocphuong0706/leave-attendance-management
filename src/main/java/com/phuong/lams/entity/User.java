@@ -1,5 +1,6 @@
 package com.phuong.lams.entity;
 
+import com.phuong.lams.enums.Gender;
 import com.phuong.lams.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -29,6 +30,11 @@ public class User {
 
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
+
+    // Giới tính, dùng để xác định loại nghỉ nào áp dụng (có thể chưa có với dữ liệu cũ)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private Gender gender;
 
     // Lưu vai trò dưới dạng chữ (EMPLOYEE, MANAGER, ADMIN)
     @Enumerated(EnumType.STRING)
