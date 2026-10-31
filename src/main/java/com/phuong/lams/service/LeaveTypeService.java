@@ -4,6 +4,7 @@ import com.phuong.lams.dto.LeaveTypeForm;
 import com.phuong.lams.dto.LeaveTypeRow;
 import com.phuong.lams.entity.LeaveType;
 import com.phuong.lams.exception.BusinessException;
+import com.phuong.lams.repository.LeaveRequestRepository;
 import com.phuong.lams.repository.LeaveTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.List;
 public class LeaveTypeService {
 
     private final LeaveTypeRepository leaveTypeRepository;
+    private final LeaveRequestRepository leaveRequestRepository;
     private final LeaveBalanceService leaveBalanceService;
 
     @Transactional(readOnly = true)
@@ -82,15 +84,19 @@ public class LeaveTypeService {
         return loai.isActive();
     }
 
-    // Chỉ xóa được khi chưa ai dùng ngày phép của loại nghỉ này
+    // Chỉ xóa được khi chưa có đơn nghỉ nào và chưa ai dùng ngày phép của loại nghỉ này
     @Transactional
     public void xoa(Long id) {
         LeaveType loai = timTheoId(id);
+        if (leaveRequestRepository.existsByLeaveTypeId(id)) {
+            throw new BusinessException("Không thể xóa: loại nghỉ \"" + loai.getName()
+                    + "\" đã có đơn xin nghỉ. Hãy chọn Ngừng dùng");
+        }
         if (leaveBalanceService.coNguoiDaDung(id)) {
             throw new BusinessException("Không thể xóa: loại nghỉ \"" + loai.getName()
                     + "\" đã có người sử dụng ngày phép. Hãy chọn Ngừng dùng");
         }
-        // Chưa ai dùng nên dọn số dư đã cấp rồi mới xóa loại nghỉ
+        // Chưa có đơn và chưa ai dùng nên dọn số dư đã cấp rồi mới xóa loại nghỉ
         leaveBalanceService.xoaSoDuCuaLoaiNghi(id);
         leaveTypeRepository.delete(loai);
     }

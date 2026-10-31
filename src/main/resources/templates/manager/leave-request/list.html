@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Duyệt đơn nghỉ phép')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('duyetDon')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <h4 class="mb-3"><i class="bi bi-check2-square"></i> Duyệt đơn nghỉ phép</h4>
+
+            <div th:if="${thanhCong}" class="alert alert-success" th:text="${thanhCong}"></div>
+            <div th:if="${loi}" class="alert alert-danger" th:text="${loi}"></div>
+
+            <div class="card shadow-sm">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Người xin nghỉ</th>
+                        <th>Loại nghỉ</th>
+                        <th style="width: 110px">Từ ngày</th>
+                        <th style="width: 110px">Đến ngày</th>
+                        <th style="width: 80px">Số ngày</th>
+                        <th>Lý do</th>
+                        <th style="width: 140px">Ngày gửi</th>
+                        <th style="width: 300px">Xử lý</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${danhSach}">
+                        <td>
+                            <div th:text="${r.employeeName}"></div>
+                            <small class="text-muted" th:text="${r.departmentName}"></small>
+                        </td>
+                        <td th:text="${r.leaveTypeName}"></td>
+                        <td th:text="${r.startDate}"></td>
+                        <td th:text="${r.endDate}"></td>
+                        <td th:text="${r.days}"></td>
+                        <td th:text="${r.reason}"></td>
+                        <td th:text="${r.createdAt}"></td>
+                        <td>
+                            <!-- Hai nút dùng chung một form: nút Từ chối đổi đường dẫn gửi bằng formaction -->
+                            <form th:action="@{/manager/leave-requests/{id}/approve(id=${r.id})}" method="post">
+                                <input type="text" name="ghiChu" maxlength="500"
+                                       class="form-control form-control-sm mb-2"
+                                       placeholder="Ghi chú (bắt buộc khi từ chối)">
+                                <button type="submit" class="btn btn-sm btn-success"
+                                        onclick="return confirm('Duyệt đơn này và trừ ngày phép?');">
+                                    <i class="bi bi-check-lg"></i> Duyệt
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        th:formaction="@{/manager/leave-requests/{id}/reject(id=${r.id})}"
+                                        onclick="return confirm('Từ chối đơn này?');">
+                                    <i class="bi bi-x-lg"></i> Từ chối
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(danhSach)}">
+                        <td colspan="8" class="text-center text-muted py-4">Không có đơn nào đang chờ bạn duyệt</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

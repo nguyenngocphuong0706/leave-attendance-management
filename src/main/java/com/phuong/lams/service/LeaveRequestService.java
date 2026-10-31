@@ -123,8 +123,9 @@ public class LeaveRequestService {
     // Người xin nghỉ tự hủy đơn của mình, chỉ khi đơn còn chờ duyệt
     @Transactional
     public void huyDon(String email, Long id) {
+        // Lấy đơn có khóa: nếu quản lý đang duyệt đúng đơn này thì chờ họ xong, rồi thấy đơn đã không còn chờ
         // Đơn không tồn tại và đơn của người khác cùng báo một thông điệp, để không lộ thông tin
-        LeaveRequest don = leaveRequestRepository.findById(id)
+        LeaveRequest don = leaveRequestRepository.timDeXuLy(id)
                 .filter(d -> d.getUser().getEmail().equalsIgnoreCase(email))
                 .orElseThrow(() -> new BusinessException("Không tìm thấy đơn nghỉ phép có mã " + id));
         if (don.getStatus() != LeaveStatus.PENDING) {

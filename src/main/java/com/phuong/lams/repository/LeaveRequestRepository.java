@@ -2,13 +2,16 @@ package com.phuong.lams.repository;
 
 import com.phuong.lams.entity.LeaveRequest;
 import com.phuong.lams.enums.LeaveStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 // Truy vấn bảng leave_requests (đơn xin nghỉ phép)
 public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long> {
@@ -50,4 +53,39 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
                                @Param("trangThai") LeaveStatus trangThai,
                                @Param("tuNgay") LocalDate tuNgay,
                                @Param("denNgay") LocalDate denNgay);
+
+    // Các đơn đang chờ của những nhân viên do người này làm quản lý trực tiếp
+    @Query("""
+            select r from LeaveRequest r
+            join fetch r.user u
+            join fetch r.leaveType
+            left join fetch u.department
+            where r.status = :trangThai
+              and u.manager.id = :nguoiDuyetId
+            order by r.createdAt asc
+            """)
+    List<LeaveRequest> layChoDuyetCuaQuanLy(@Param("nguoiDuyetId") Long nguoiDuyetId,
+                                            @Param("trangThai") LeaveStatus trangThai);
+
+    // Các đơn đang chờ của những người không có quản lý trực tiếp (ADMIN duyệt), trừ đơn của chính người duyệt
+    @Query("""
+            select r from LeaveRequest r
+            join fetch r.user u
+            join fetch r.leaveType
+            left join fetch u.department
+            where r.status = :trangThai
+              and u.manager is null
+              and u.id <> :nguoiDuyetId
+            order by r.createdAt asc
+            """)
+    List<LeaveRequest> layChoDuyetKhongCoQuanLy(@Param("nguoiDuyetId") Long nguoiDuyetId,
+                                                @Param("trangThai") LeaveStatus trangThai);
+
+    // Lấy một đơn và KHÓA dòng đó đến hết transaction. Ai khác muốn xử lý cùng đơn phải chờ
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from LeaveRequest r where r.id = :id")
+    Optional<LeaveRequest> timDeXuLy(@Param("id") Long id);
+
+    // Đã có đơn nghỉ nào thuộc loại nghỉ này chưa (dùng khi quyết định có cho xóa loại nghỉ không)
+    boolean existsByLeaveTypeId(Long leaveTypeId);
 }
