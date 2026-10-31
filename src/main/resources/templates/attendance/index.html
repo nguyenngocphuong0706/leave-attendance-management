@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chấm công')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('chamCong')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <h4 class="mb-3"><i class="bi bi-clock"></i> Chấm công</h4>
+
+            <div th:if="${thanhCong}" class="alert alert-success" th:text="${thanhCong}"></div>
+            <div th:if="${loi}" class="alert alert-danger" th:text="${loi}"></div>
+
+            <!-- Hôm nay -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3">Hôm nay: <span th:text="${homNay.thu}"></span>, <span th:text="${homNay.ngay}"></span></h5>
+                    <div class="row align-items-center">
+                        <div class="col-6 col-md-3">
+                            <div class="text-muted">Giờ vào</div>
+                            <div class="fs-3" th:text="${homNay.checkIn} ?: '--:--'"></div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-muted">Giờ ra</div>
+                            <div class="fs-3" th:text="${homNay.checkOut} ?: '--:--'"></div>
+                        </div>
+                        <div class="col-12 col-md-6 d-flex gap-2 mt-3 mt-md-0">
+                            <form th:action="@{/attendance/check-in}" method="post" class="m-0">
+                                <button type="submit" class="btn btn-success btn-lg"
+                                        th:disabled="${!homNay.coTheCheckIn}">
+                                    <i class="bi bi-box-arrow-in-right"></i> Check-in
+                                </button>
+                            </form>
+                            <form th:action="@{/attendance/check-out}" method="post" class="m-0">
+                                <button type="submit" class="btn btn-outline-danger btn-lg"
+                                        th:disabled="${!homNay.coTheCheckOut}">
+                                    <i class="bi bi-box-arrow-right"></i> Check-out
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div th:if="${homNay.ghiChu}" class="alert alert-warning mt-3 mb-0" th:text="${homNay.ghiChu}"></div>
+                </div>
+            </div>
+
+            <!-- Lịch sử -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <strong>Lịch sử chấm công</strong>
+                    <form th:action="@{/attendance}" method="get" class="d-flex gap-2 m-0">
+                        <input type="month" name="thang" th:value="${thang}" class="form-control form-control-sm"
+                               onchange="this.form.submit()">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Xem</button>
+                    </form>
+                </div>
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 120px">Ngày</th>
+                        <th style="width: 100px">Thứ</th>
+                        <th style="width: 100px">Giờ vào</th>
+                        <th style="width: 100px">Giờ ra</th>
+                        <th style="width: 160px">Số giờ làm</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${lichSu}">
+                        <td th:text="${r.ngay}"></td>
+                        <td th:text="${r.thu}"></td>
+                        <td th:text="${r.gioVao}"></td>
+                        <td th:text="${r.gioRa}"></td>
+                        <td th:text="${r.soGio}"></td>
+                        <td>
+                            <span th:if="${r.muon}" class="badge text-bg-warning">Đi muộn</span>
+                            <span th:if="${r.veSom}" class="badge text-bg-warning">Về sớm</span>
+                            <span th:if="${r.thieuCheckOut}" class="badge text-bg-danger">Thiếu check-out</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(lichSu)}">
+                        <td colspan="6" class="text-center text-muted py-4">Chưa có bản ghi chấm công nào trong tháng này</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

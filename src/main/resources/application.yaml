@@ -15,3 +15,11 @@ spring:
         format_sql: true
   flyway:
     enabled: true
+
+# Quy tắc chấm công của công ty, đổi ở đây là đổi quy tắc, không cần sửa code
+lams:
+  attendance:
+    work-start: "08:30"
+    work-end: "17:30"
+    late-grace-minutes: 15
+    zone: Asia/Ho_Chi_Minh

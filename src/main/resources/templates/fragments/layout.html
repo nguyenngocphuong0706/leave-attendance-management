@@ -32,6 +32,11 @@
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link" th:classappend="${active == 'chamCong'} ? 'active fw-bold'" th:href="@{/attendance}">
+                <i class="bi bi-clock"></i> Chấm công
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" th:classappend="${active == 'donCuaToi'} ? 'active fw-bold'" th:href="@{/leave-requests}">
                 <i class="bi bi-journal-text"></i> Đơn nghỉ phép của tôi
             </a>
