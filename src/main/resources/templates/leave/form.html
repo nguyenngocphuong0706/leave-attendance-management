@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Xin nghỉ phép')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('donCuaToi')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <h4 class="mb-3">Xin nghỉ phép</h4>
+
+            <div class="alert alert-warning" style="max-width: 600px;" th:if="${#lists.isEmpty(loaiNghi)}">
+                Bạn chưa có loại nghỉ nào để chọn. Hãy liên hệ quản trị viên.
+            </div>
+
+            <div class="card shadow-sm" style="max-width: 600px;">
+                <div class="card-body">
+                    <form th:action="@{/leave-requests}" th:object="${form}" method="post" novalidate>
+
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+                            <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Loại nghỉ</label>
+                            <select th:field="*{leaveTypeId}" class="form-select"
+                                    th:classappend="${#fields.hasErrors('leaveTypeId')} ? 'is-invalid'">
+                                <option value="">-- Chọn loại nghỉ --</option>
+                                <option th:each="l : ${loaiNghi}" th:value="${l.id}" th:text="${l.label}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{leaveTypeId}"></div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Từ ngày</label>
+                                <input type="date" th:field="*{startDate}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('startDate')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{startDate}"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Đến ngày</label>
+                                <input type="date" th:field="*{endDate}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('endDate')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{endDate}"></div>
+                            </div>
+                        </div>
+                        <div class="form-text mb-3">Hệ thống tự tính số ngày làm việc, không tính thứ Bảy và Chủ nhật.</div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Lý do</label>
+                            <textarea th:field="*{reason}" rows="3" class="form-control"
+                                      th:classappend="${#fields.hasErrors('reason')} ? 'is-invalid'"></textarea>
+                            <div class="invalid-feedback" th:errors="*{reason}"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Gửi đơn</button>
+                        <a th:href="@{/leave-requests}" class="btn btn-outline-secondary">Hủy</a>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

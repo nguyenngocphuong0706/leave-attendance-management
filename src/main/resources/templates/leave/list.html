@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Đơn nghỉ phép của tôi')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('donCuaToi')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="bi bi-journal-text"></i> Đơn nghỉ phép của tôi</h4>
+                <a th:href="@{/leave-requests/new}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Xin nghỉ phép
+                </a>
+            </div>
+
+            <div th:if="${thanhCong}" class="alert alert-success" th:text="${thanhCong}"></div>
+            <div th:if="${loi}" class="alert alert-danger" th:text="${loi}"></div>
+
+            <div class="card shadow-sm">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Loại nghỉ</th>
+                        <th style="width: 120px">Từ ngày</th>
+                        <th style="width: 120px">Đến ngày</th>
+                        <th style="width: 90px">Số ngày</th>
+                        <th>Lý do</th>
+                        <th style="width: 130px">Trạng thái</th>
+                        <th>Ghi chú của người duyệt</th>
+                        <th style="width: 100px" class="text-end">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${danhSach}">
+                        <td th:text="${r.leaveTypeName}"></td>
+                        <td th:text="${r.startDate}"></td>
+                        <td th:text="${r.endDate}"></td>
+                        <td th:text="${r.days}"></td>
+                        <td th:text="${r.reason}"></td>
+                        <td>
+                                <span class="badge" th:classappend="'text-bg-' + ${r.statusBadge}"
+                                      th:text="${r.statusLabel}"></span>
+                        </td>
+                        <td th:text="${r.reviewNote} ?: '-'"></td>
+                        <td class="text-end">
+                            <form th:if="${r.coTheHuy}"
+                                  th:action="@{/leave-requests/{id}/cancel(id=${r.id})}" method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-circle"></i> Hủy
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(danhSach)}">
+                        <td colspan="8" class="text-center text-muted py-4">Bạn chưa có đơn nghỉ phép nào</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

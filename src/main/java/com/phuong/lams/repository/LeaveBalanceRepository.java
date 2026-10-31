@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 // Truy vấn bảng leave_balances (số dư phép)
 public interface LeaveBalanceRepository extends JpaRepository<LeaveBalance, Long> {
@@ -20,6 +21,9 @@ public interface LeaveBalanceRepository extends JpaRepository<LeaveBalance, Long
             order by lt.id
             """)
     List<LeaveBalance> layTheoEmailVaNam(@Param("email") String email, @Param("year") int year);
+
+    // Số dư của một người cho một loại nghỉ trong một năm
+    Optional<LeaveBalance> findByUserIdAndLeaveTypeIdAndYear(Long userId, Long leaveTypeId, int year);
 
     // Người này đã có số dư cho loại nghỉ này trong năm này chưa
     boolean existsByUserIdAndLeaveTypeIdAndYear(Long userId, Long leaveTypeId, int year);
