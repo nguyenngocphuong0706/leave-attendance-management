@@ -32,4 +32,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Danh sách người có thể làm quản lý: đang hoạt động và có vai trò thuộc nhóm cho trước
     List<User> findByRoleInAndActiveTrueOrderByFullNameAsc(Collection<Role> roles);
+
+    // Nhân viên đang hoạt động do một người làm quản lý trực tiếp
+    List<User> findByManagerIdAndActiveTrueOrderByFullNameAsc(Long managerId);
+
+    // Người đang hoạt động không có quản lý trực tiếp, trừ một người cho trước (chính người đang xét)
+    List<User> findByManagerIsNullAndActiveTrueAndIdNotOrderByFullNameAsc(Long id);
 }

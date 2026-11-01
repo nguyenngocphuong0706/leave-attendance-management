@@ -43,6 +43,7 @@
                             </form>
                         </div>
                     </div>
+                    <div th:if="${homNay.lamThem}" class="alert alert-info mt-3 mb-0" th:text="${homNay.lamThem}"></div>
                     <div th:if="${homNay.ghiChu}" class="alert alert-warning mt-3 mb-0" th:text="${homNay.ghiChu}"></div>
                 </div>
             </div>
@@ -76,9 +77,13 @@
                         <td th:text="${r.gioRa}"></td>
                         <td th:text="${r.soGio}"></td>
                         <td>
+                            <span th:if="${r.lamThem}" class="badge text-bg-primary">Làm thêm</span>
                             <span th:if="${r.muon}" class="badge text-bg-warning">Đi muộn</span>
                             <span th:if="${r.veSom}" class="badge text-bg-warning">Về sớm</span>
                             <span th:if="${r.thieuCheckOut}" class="badge text-bg-danger">Thiếu check-out</span>
+                            <small th:if="${r.gioLamThemTinh}" class="text-muted ms-1">
+                                Tính làm thêm: <span th:text="${r.gioLamThemTinh}"></span>
+                            </small>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(lichSu)}">

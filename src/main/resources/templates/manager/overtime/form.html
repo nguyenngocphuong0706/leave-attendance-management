@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tạo lệnh làm thêm')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('giaoLamThem')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <h4 class="mb-3">Tạo lệnh làm thêm</h4>
+
+            <div class="alert alert-warning" style="max-width: 600px;" th:if="${#lists.isEmpty(nhanVien)}">
+                Bạn chưa có nhân viên nào để giao việc làm thêm.
+            </div>
+
+            <div class="card shadow-sm" style="max-width: 600px;">
+                <div class="card-body">
+                    <form th:action="@{/manager/overtime}" th:object="${form}" method="post" novalidate>
+
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+                            <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nhân viên</label>
+                            <select th:field="*{employeeId}" class="form-select"
+                                    th:classappend="${#fields.hasErrors('employeeId')} ? 'is-invalid'">
+                                <option value="">-- Chọn nhân viên --</option>
+                                <option th:each="n : ${nhanVien}" th:value="${n.id}" th:text="${n.label}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{employeeId}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ngày làm thêm (thứ Bảy hoặc Chủ nhật)</label>
+                            <input type="date" th:field="*{workDate}" class="form-control"
+                                   th:classappend="${#fields.hasErrors('workDate')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:errors="*{workDate}"></div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Từ giờ</label>
+                                <input type="time" th:field="*{startTime}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('startTime')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{startTime}"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Đến giờ</label>
+                                <input type="time" th:field="*{endTime}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('endTime')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{endTime}"></div>
+                            </div>
+                        </div>
+                        <div class="form-text mb-3">
+                            Một lệnh tối đa 12 giờ, tổng giờ làm thêm của mỗi nhân viên không quá 40 giờ mỗi tháng.
+                            Nhân viên có quyền từ chối.
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Lý do</label>
+                            <textarea th:field="*{reason}" rows="3" class="form-control"
+                                      th:classappend="${#fields.hasErrors('reason')} ? 'is-invalid'"></textarea>
+                            <div class="invalid-feedback" th:errors="*{reason}"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Gửi lệnh</button>
+                        <a th:href="@{/manager/overtime}" class="btn btn-outline-secondary">Hủy</a>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

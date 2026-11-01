@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Lệnh làm thêm của tôi')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('lamThemCuaToi')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <h4 class="mb-3"><i class="bi bi-alarm"></i> Lệnh làm thêm của tôi</h4>
+
+            <div class="alert alert-secondary">
+                Làm thêm giờ cần sự đồng ý của bạn. Bạn có thể từ chối mà không cần nêu lý do.
+                Hãy xem kỹ ngày và khung giờ trước khi đồng ý.
+            </div>
+
+            <div th:if="${thanhCong}" class="alert alert-success" th:text="${thanhCong}"></div>
+            <div th:if="${loi}" class="alert alert-danger" th:text="${loi}"></div>
+
+            <div class="card shadow-sm">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 110px">Ngày</th>
+                        <th style="width: 90px">Thứ</th>
+                        <th style="width: 130px">Khung giờ</th>
+                        <th style="width: 110px">Số giờ</th>
+                        <th>Lý do</th>
+                        <th>Người giao</th>
+                        <th style="width: 130px">Trạng thái</th>
+                        <th>Ghi chú của tôi</th>
+                        <th style="width: 280px">Phản hồi</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${danhSach}">
+                        <td th:text="${r.ngay}"></td>
+                        <td th:text="${r.thu}"></td>
+                        <td th:text="${r.khungGio}"></td>
+                        <td th:text="${r.soGio}"></td>
+                        <td th:text="${r.reason}"></td>
+                        <td th:text="${r.creatorName}"></td>
+                        <td>
+                                <span class="badge" th:classappend="'text-bg-' + ${r.statusBadge}"
+                                      th:text="${r.statusLabel}"></span>
+                        </td>
+                        <td th:text="${r.responseNote} ?: '-'"></td>
+                        <td>
+                            <!-- Hai nút dùng chung một form: nút Từ chối đổi đường dẫn gửi bằng formaction -->
+                            <form th:if="${r.coTheTraLoi}"
+                                  th:action="@{/overtime/{id}/accept(id=${r.id})}" method="post">
+                                <input type="text" name="ghiChu" maxlength="500"
+                                       class="form-control form-control-sm mb-2" placeholder="Ghi chú (không bắt buộc)">
+                                <button type="submit" class="btn btn-sm btn-success"
+                                        onclick="return confirm('Bạn đồng ý làm thêm theo lệnh này?');">
+                                    <i class="bi bi-check-lg"></i> Đồng ý
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        th:formaction="@{/overtime/{id}/decline(id=${r.id})}"
+                                        onclick="return confirm('Bạn từ chối lệnh này?');">
+                                    <i class="bi bi-x-lg"></i> Từ chối
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(danhSach)}">
+                        <td colspan="9" class="text-center text-muted py-4">Bạn chưa có lệnh làm thêm nào</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

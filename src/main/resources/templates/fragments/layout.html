@@ -37,6 +37,11 @@
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link" th:classappend="${active == 'lamThemCuaToi'} ? 'active fw-bold'" th:href="@{/overtime}">
+                <i class="bi bi-alarm"></i> Lệnh làm thêm của tôi
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" th:classappend="${active == 'donCuaToi'} ? 'active fw-bold'" th:href="@{/leave-requests}">
                 <i class="bi bi-journal-text"></i> Đơn nghỉ phép của tôi
             </a>
@@ -44,6 +49,11 @@
         <li class="nav-item" th:if="${isManager}">
             <a class="nav-link" th:classappend="${active == 'duyetDon'} ? 'active fw-bold'" th:href="@{/manager/leave-requests}">
                 <i class="bi bi-check2-square"></i> Duyệt đơn nghỉ phép
+            </a>
+        </li>
+        <li class="nav-item" th:if="${isManager}">
+            <a class="nav-link" th:classappend="${active == 'giaoLamThem'} ? 'active fw-bold'" th:href="@{/manager/overtime}">
+                <i class="bi bi-clipboard-plus"></i> Giao việc làm thêm
             </a>
         </li>
         <li class="nav-item" th:if="${isAdmin}">

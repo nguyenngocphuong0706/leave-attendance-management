@@ -15,9 +15,13 @@ public interface AttendanceRepository extends JpaRepository<AttendanceRecord, Lo
     // Bản ghi chấm công của một người trong một ngày (có hoặc không)
     Optional<AttendanceRecord> findByUserIdAndWorkDate(Long userId, LocalDate workDate);
 
-    // Các bản ghi của một người trong khoảng ngày, ngày mới nhất lên đầu
+    // Đã có bản ghi chấm công nào theo lệnh làm thêm này chưa
+    boolean existsByOvertimeOrderId(Long overtimeOrderId);
+
+    // Các bản ghi của một người trong khoảng ngày, ngày mới nhất lên đầu, lấy kèm lệnh làm thêm (nếu có)
     @Query("""
             select a from AttendanceRecord a
+            left join fetch a.overtimeOrder
             where a.user.email = :email
               and a.workDate between :tuNgay and :denNgay
             order by a.workDate desc

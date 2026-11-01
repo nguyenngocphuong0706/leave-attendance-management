@@ -41,4 +41,9 @@ public class AttendanceRecord {
     // Về sớm, được xác định lúc check-out
     @Column(name = "left_early", nullable = false)
     private boolean leftEarly;
+
+    // Có giá trị khi đây là ngày làm thêm theo lệnh, trống với ngày làm việc bình thường
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "overtime_order_id")
+    private OvertimeOrder overtimeOrder;
 }
