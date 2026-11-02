@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,4 +30,27 @@ public interface AttendanceRepository extends JpaRepository<AttendanceRecord, Lo
     List<AttendanceRecord> layTheoKhoang(@Param("email") String email,
                                          @Param("tuNgay") LocalDate tuNgay,
                                          @Param("denNgay") LocalDate denNgay);
+
+    // Các bản ghi của CẢ NHÓM người trong khoảng ngày, bằng một câu truy vấn (dùng cho báo cáo)
+    @Query("""
+            select a from AttendanceRecord a
+            left join fetch a.overtimeOrder
+            where a.user.id in :userIds
+              and a.workDate between :tuNgay and :denNgay
+            order by a.workDate
+            """)
+    List<AttendanceRecord> layTheoNguoiVaKhoang(@Param("userIds") Collection<Long> userIds,
+                                                @Param("tuNgay") LocalDate tuNgay,
+                                                @Param("denNgay") LocalDate denNgay);
+
+    // Chỉ các bản ghi làm thêm của cả nhóm trong khoảng ngày (dùng để cộng lũy kế cả năm)
+    @Query("""
+            select a from AttendanceRecord a
+            join fetch a.overtimeOrder
+            where a.user.id in :userIds
+              and a.workDate between :tuNgay and :denNgay
+            """)
+    List<AttendanceRecord> layLamThemTheoNguoiVaKhoang(@Param("userIds") Collection<Long> userIds,
+                                                       @Param("tuNgay") LocalDate tuNgay,
+                                                       @Param("denNgay") LocalDate denNgay);
 }

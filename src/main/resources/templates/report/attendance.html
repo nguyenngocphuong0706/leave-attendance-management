@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Báo cáo chấm công')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('baoCao')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="bi bi-bar-chart-line"></i> Báo cáo chấm công tháng
+                    <span th:text="${baoCao.thang}"></span></h4>
+                <form th:action="@{/reports/attendance}" method="get" class="d-flex gap-2 m-0">
+                    <input type="month" name="thang" th:value="${thangIso}" class="form-control form-control-sm"
+                           onchange="this.form.submit()">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Xem</button>
+                </form>
+            </div>
+
+            <div th:if="${loi}" class="alert alert-danger" th:text="${loi}"></div>
+
+            <div class="alert alert-secondary">
+                <div><strong>Phạm vi:</strong> <span th:text="${baoCao.phamVi}"></span></div>
+                <div><strong>Số ngày làm việc trong tháng:</strong> <span th:text="${baoCao.soNgayLamViec}"></span>
+                    (thứ Hai đến thứ Sáu, chưa trừ ngày lễ)</div>
+                <div class="mt-1 small">
+                    Cột <em>Chưa chấm công</em> chỉ tính ngày làm việc đã qua, không có chấm công và không có đơn nghỉ đã duyệt.
+                    Hệ thống chưa biết ngày lễ nên ngày lễ cũng hiện ở cột này, cần đối chiếu trước khi kết luận.
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Họ tên</th>
+                            <th>Phòng ban</th>
+                            <th class="text-end" title="Số ngày thường có chấm công">Ngày đi làm</th>
+                            <th class="text-end" title="Ngày làm việc thuộc đơn nghỉ đã duyệt">Nghỉ phép</th>
+                            <th class="text-end" title="Ngày làm việc đã qua, không có chấm công, không nghỉ phép">Chưa chấm công</th>
+                            <th class="text-end">Đi muộn</th>
+                            <th class="text-end">Về sớm</th>
+                            <th class="text-end">Thiếu check-out</th>
+                            <th class="text-end" title="Phần nằm trong khung giờ của lệnh">Làm thêm tháng</th>
+                            <th class="text-end">Làm thêm cả năm</th>
+                            <th>Cảnh báo</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="r : ${baoCao.dong}">
+                            <td>
+                                <a th:href="@{/reports/attendance/{id}(id=${r.userId}, thang=${thangIso})}"
+                                   th:text="${r.hoTen}"></a>
+                            </td>
+                            <td th:text="${r.phongBan}"></td>
+                            <td class="text-end" th:text="${r.ngayDiLam}"></td>
+                            <td class="text-end" th:text="${r.ngayNghiPhep}"></td>
+                            <td class="text-end">
+                                    <span th:class="${r.chuaChamCong > 0} ? 'text-danger fw-bold' : ''"
+                                          th:text="${r.chuaChamCong}"></span>
+                            </td>
+                            <td class="text-end" th:text="${r.diMuon}"></td>
+                            <td class="text-end" th:text="${r.veSom}"></td>
+                            <td class="text-end" th:text="${r.thieuCheckOut}"></td>
+                            <td class="text-end" th:text="${r.gioLamThemThang}"></td>
+                            <td class="text-end" th:text="${r.gioLamThemNam}"></td>
+                            <td>
+                                    <span th:if="${r.canhBao}" class="badge"
+                                          th:classappend="'text-bg-' + ${r.canhBaoBadge}"
+                                          th:text="${r.canhBao}"></span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(baoCao.dong)}">
+                            <td colspan="11" class="text-center text-muted py-4">Không có dữ liệu</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

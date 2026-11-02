@@ -88,4 +88,17 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 
     // Đã có đơn nghỉ nào thuộc loại nghỉ này chưa (dùng khi quyết định có cho xóa loại nghỉ không)
     boolean existsByLeaveTypeId(Long leaveTypeId);
+
+    // Các đơn của CẢ NHÓM người có trạng thái cho trước và trùng khoảng ngày (dùng cho báo cáo)
+    @Query("""
+            select r from LeaveRequest r
+            where r.user.id in :userIds
+              and r.status = :trangThai
+              and r.startDate <= :denNgay
+              and r.endDate >= :tuNgay
+            """)
+    List<LeaveRequest> layTheoNguoiTrangThaiVaKhoang(@Param("userIds") Collection<Long> userIds,
+                                                     @Param("trangThai") LeaveStatus trangThai,
+                                                     @Param("tuNgay") LocalDate tuNgay,
+                                                     @Param("denNgay") LocalDate denNgay);
 }

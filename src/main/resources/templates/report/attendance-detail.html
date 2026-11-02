@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chi tiết chấm công')}"></head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{fragments/layout :: sidebar('baoCao')}"></div>
+
+        <main class="col-md-9 col-lg-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h4 class="mb-0"><i class="bi bi-person-lines-fill"></i>
+                        Chấm công của <span th:text="${chiTiet.hoTen}"></span>
+                        <small class="text-muted">- tháng <span th:text="${chiTiet.thang}"></span></small></h4>
+                    <div class="text-muted" th:text="${chiTiet.phongBan}"></div>
+                </div>
+                <div class="d-flex gap-2">
+                    <form th:action="@{/reports/attendance/{id}(id=${userId})}" method="get" class="d-flex gap-2 m-0">
+                        <input type="month" name="thang" th:value="${thangIso}" class="form-control form-control-sm"
+                               onchange="this.form.submit()">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Xem</button>
+                    </form>
+                    <a th:href="@{/reports/attendance(thang=${thangIso})}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Về báo cáo
+                    </a>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 120px">Ngày</th>
+                        <th style="width: 100px">Thứ</th>
+                        <th style="width: 100px">Giờ vào</th>
+                        <th style="width: 100px">Giờ ra</th>
+                        <th style="width: 160px">Số giờ làm</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${chiTiet.dong}">
+                        <td th:text="${r.ngay}"></td>
+                        <td th:text="${r.thu}"></td>
+                        <td th:text="${r.gioVao}"></td>
+                        <td th:text="${r.gioRa}"></td>
+                        <td th:text="${r.soGio}"></td>
+                        <td>
+                            <span th:if="${r.lamThem}" class="badge text-bg-primary">Làm thêm</span>
+                            <span th:if="${r.muon}" class="badge text-bg-warning">Đi muộn</span>
+                            <span th:if="${r.veSom}" class="badge text-bg-warning">Về sớm</span>
+                            <span th:if="${r.thieuCheckOut}" class="badge text-bg-danger">Thiếu check-out</span>
+                            <small th:if="${r.gioLamThemTinh}" class="text-muted ms-1">
+                                Tính làm thêm: <span th:text="${r.gioLamThemTinh}"></span>
+                            </small>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(chiTiet.dong)}">
+                        <td colspan="6" class="text-center text-muted py-4">Chưa có bản ghi chấm công nào trong tháng này</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

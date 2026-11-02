@@ -4,6 +4,7 @@ import com.phuong.lams.entity.User;
 import com.phuong.lams.enums.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,4 +39,23 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Người đang hoạt động không có quản lý trực tiếp, trừ một người cho trước (chính người đang xét)
     List<User> findByManagerIsNullAndActiveTrueAndIdNotOrderByFullNameAsc(Long id);
+
+    // Một quản lý và các nhân viên đang hoạt động của người đó, kèm phòng ban (dùng cho báo cáo)
+    @Query("""
+            select u from User u
+            left join fetch u.department
+            where u.active = true
+              and (u.id = :id or u.manager.id = :id)
+            order by u.fullName
+            """)
+    List<User> layNhomCuaQuanLy(@Param("id") Long id);
+
+    // Tất cả người đang hoạt động, kèm phòng ban (dùng cho báo cáo của ADMIN)
+    @Query("""
+            select u from User u
+            left join fetch u.department
+            where u.active = true
+            order by u.fullName
+            """)
+    List<User> layTatCaDangHoatDong();
 }
