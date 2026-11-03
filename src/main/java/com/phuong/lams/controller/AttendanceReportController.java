@@ -1,10 +1,15 @@
 package com.phuong.lams.controller;
 
 import com.phuong.lams.exception.BusinessException;
+import com.phuong.lams.service.AttendanceExportService;
 import com.phuong.lams.service.AttendanceReportService;
 import com.phuong.lams.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,7 +27,11 @@ import java.time.YearMonth;
 @RequiredArgsConstructor
 public class AttendanceReportController {
 
+    private static final MediaType EXCEL = MediaType.parseMediaType(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
     private final AttendanceReportService reportService;
+    private final AttendanceExportService exportService;
     private final AttendanceService attendanceService;
 
     @GetMapping
@@ -34,6 +43,22 @@ public class AttendanceReportController {
         // Dạng năm-tháng để điền lại vào ô chọn tháng và ghép vào đường dẫn chi tiết
         model.addAttribute("thangIso", thangXem.toString());
         return "report/attendance";
+    }
+
+    // Tải báo cáo tháng dưới dạng file Excel. Đường dẫn cố định /export được ưu tiên hơn /{userId}
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> xuatExcel(@RequestParam(required = false)
+                                            @DateTimeFormat(pattern = "yyyy-MM") YearMonth thang,
+                                            Authentication authentication) {
+        YearMonth thangXem = thang != null ? thang : attendanceService.thangHienTai();
+        byte[] file = exportService.xuatExcel(authentication.getName(), thangXem);
+        ContentDisposition tenFile = ContentDisposition.attachment()
+                .filename("bao-cao-cham-cong-" + thangXem + ".xlsx")
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, tenFile.toString())
+                .contentType(EXCEL)
+                .body(file);
     }
 
     @GetMapping("/{userId}")

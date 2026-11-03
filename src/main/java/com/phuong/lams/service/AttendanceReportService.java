@@ -1,10 +1,12 @@
 package com.phuong.lams.service;
 
 import com.phuong.lams.dto.AttendanceDetail;
+import com.phuong.lams.dto.AttendanceExportRow;
 import com.phuong.lams.dto.AttendanceReport;
 import com.phuong.lams.dto.AttendanceReportRow;
 import com.phuong.lams.entity.AttendanceRecord;
 import com.phuong.lams.entity.LeaveRequest;
+import com.phuong.lams.entity.OvertimeOrder;
 import com.phuong.lams.entity.User;
 import com.phuong.lams.enums.LeaveStatus;
 import com.phuong.lams.enums.Role;
@@ -17,13 +19,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Collator;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,6 +44,7 @@ public class AttendanceReportService {
     private static final Duration GIOI_HAN_NAM = Duration.ofHours(200);
     private static final Duration NGUONG_CANH_BAO_NAM = Duration.ofHours(180);
     private static final DateTimeFormatter THANG = DateTimeFormatter.ofPattern("MM/yyyy");
+    private static final DateTimeFormatter GIO = DateTimeFormatter.ofPattern("HH:mm");
 
     private final UserRepository userRepository;
     private final AttendanceRepository attendanceRepository;
@@ -76,6 +84,26 @@ public class AttendanceReportService {
                 .toList();
 
         return new AttendanceReport(thang.format(THANG), moTaPhamVi(nguoiXem), demNgayLamViec(thang), dong);
+    }
+
+    // Chi tiết từng ngày của TẤT CẢ những người trong phạm vi (dùng cho sheet Chi tiết của file Excel)
+    @Transactional(readOnly = true)
+    public List<AttendanceExportRow> layChiTietCaNhom(String emailNguoiXem, YearMonth thang) {
+        User nguoiXem = timNguoiDung(emailNguoiXem);
+        List<User> nguoiTrongPhamVi = layNguoiTrongPhamVi(nguoiXem);
+        List<Long> ids = nguoiTrongPhamVi.stream().map(User::getId).toList();
+        Map<Long, String> tenTheoId = nguoiTrongPhamVi.stream()
+                .collect(Collectors.toMap(User::getId, User::getFullName));
+        LocalDate homNay = LocalDate.now(clock);
+
+        // So sánh tên theo quy tắc tiếng Việt để các tên có dấu xếp đúng thứ tự
+        Collator sapXepTen = Collator.getInstance(Locale.forLanguageTag("vi"));
+
+        return attendanceRepository.layTheoNguoiVaKhoang(ids, thang.atDay(1), thang.atEndOfMonth()).stream()
+                .map(b -> chuyenThanhDongXuat(b, tenTheoId.get(b.getUser().getId()), homNay))
+                .sorted(Comparator.comparing(AttendanceExportRow::hoTen, sapXepTen)
+                        .thenComparing(AttendanceExportRow::ngay))
+                .toList();
     }
 
     // Chi tiết từng ngày của một người, chỉ khi người xem có quyền
@@ -211,6 +239,38 @@ public class AttendanceReportService {
             return Duration.ZERO;
         }
         return banGhi.getOvertimeOrder().thoiGianTrongKhung(banGhi.getCheckIn(), banGhi.getCheckOut());
+    }
+
+    // Chuyển một bản ghi chấm công thành một dòng của file Excel. Giờ để dạng số thập phân
+    private AttendanceExportRow chuyenThanhDongXuat(AttendanceRecord banGhi, String hoTen, LocalDate homNay) {
+        LocalDateTime ra = banGhi.getCheckOut();
+        OvertimeOrder lenh = banGhi.getOvertimeOrder();
+
+        List<String> ghiChu = new ArrayList<>();
+        if (lenh != null) {
+            ghiChu.add("Làm thêm");
+        }
+        if (banGhi.isLate()) {
+            ghiChu.add("Đi muộn");
+        }
+        if (banGhi.isLeftEarly()) {
+            ghiChu.add("Về sớm");
+        }
+        if (ra == null && banGhi.getWorkDate().isBefore(homNay)) {
+            ghiChu.add("Thiếu check-out");
+        }
+
+        return new AttendanceExportRow(
+                hoTen,
+                banGhi.getWorkDate(),
+                ThoiGianUtil.tenThu(banGhi.getWorkDate().getDayOfWeek()),
+                banGhi.getCheckIn().format(GIO),
+                ra != null ? ra.format(GIO) : null,
+                ra != null ? Duration.between(banGhi.getCheckIn(), ra).toMinutes() / 60.0 : null,
+                lenh != null && ra != null
+                        ? lenh.thoiGianTrongKhung(banGhi.getCheckIn(), ra).toMinutes() / 60.0
+                        : null,
+                String.join(", ", ghiChu));
     }
 
     private User timNguoiDung(String email) {
