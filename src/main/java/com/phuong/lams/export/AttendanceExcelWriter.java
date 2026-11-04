@@ -12,6 +12,7 @@ import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -24,7 +25,9 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
-// Tạo file Excel (.xlsx) của báo cáo chấm công tháng, gồm hai sheet: Tổng hợp và Chi tiết
+// Tạo file Excel (.xlsx) của báo cáo chấm công tháng, gồm ba sheet: Tổng hợp, Chi tiết và Ghi chú.
+// Mỗi sheet dữ liệu bắt đầu bằng dòng tiêu đề ở dòng đầu tiên, phần giải thích nằm riêng ở sheet Ghi chú.
+// Không cố định dòng (freeze panes) vì Excel hiển thị lặp dòng tiêu đề với file này
 @Component
 public class AttendanceExcelWriter {
 
@@ -35,11 +38,15 @@ public class AttendanceExcelWriter {
     private static final String[] CAC_COT_CHI_TIET = {
             "Họ tên", "Ngày", "Thứ", "Giờ vào", "Giờ ra", "Số giờ làm", "Giờ làm thêm được tính", "Ghi chú"};
 
+    // Độ rộng tối đa của một cột dữ liệu, tính bằng ký tự, để một ô dài không kéo cột ra quá mức
+    private static final int DO_RONG_TOI_DA = 45;
+
     public byte[] taoFile(AttendanceReport baoCao, List<AttendanceExportRow> chiTiet) {
         try (Workbook sach = new XSSFWorkbook(); ByteArrayOutputStream luong = new ByteArrayOutputStream()) {
             KieuO kieu = new KieuO(sach);
             veSheetTongHop(sach, kieu, baoCao);
             veSheetChiTiet(sach, kieu, chiTiet);
+            veSheetGhiChu(sach, kieu, baoCao);
             sach.write(luong);
             return luong.toByteArray();
         } catch (IOException e) {
@@ -48,22 +55,13 @@ public class AttendanceExcelWriter {
     }
 
     private void veSheetTongHop(Workbook sach, KieuO kieu, AttendanceReport baoCao) {
-        Sheet sheet = sach.createSheet("Tổng hợp");
+        // Tên sheet không được chứa dấu gạch chéo, nên đổi 10/2026 thành 10-2026
+        Sheet sheet = sach.createSheet("Tổng hợp " + baoCao.thang().replace('/', '-'));
 
-        // Phần đầu: tiêu đề và các dòng giải thích
-        taoDongChu(sheet, 0, "BÁO CÁO CHẤM CÔNG THÁNG " + baoCao.thang(), kieu.tieuDe);
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, CAC_COT_TONG_HOP.length - 1));
-        taoDongChu(sheet, 1, "Phạm vi: " + baoCao.phamVi(), kieu.chu);
-        taoDongChu(sheet, 2, "Số ngày làm việc trong tháng: " + baoCao.soNgayLamViec()
-                + " (thứ Hai đến thứ Sáu, chưa trừ ngày lễ)", kieu.chu);
-        taoDongChu(sheet, 3, "Cột Chưa chấm công chỉ tính ngày làm việc đã qua, không có chấm công và không có đơn nghỉ đã duyệt. "
-                + "Hệ thống chưa biết ngày lễ nên cần đối chiếu trước khi kết luận.", kieu.chu);
-
-        // Dòng tiêu đề các cột
-        int dongTieuDe = 5;
+        int dongTieuDe = 0;
         taoDongTieuDe(sheet, dongTieuDe, CAC_COT_TONG_HOP, kieu.dauCot);
 
-        // Các dòng dữ liệu. Giờ làm thêm ghi dạng số thập phân để cộng, lọc được trong Excel
+        // Giờ làm thêm ghi dạng số thập phân để cộng, lọc được trong Excel
         int soDong = dongTieuDe;
         for (AttendanceReportRow r : baoCao.dong()) {
             Row dong = sheet.createRow(++soDong);
@@ -115,20 +113,37 @@ public class AttendanceExcelWriter {
         hoanThienSheet(sheet, dongTieuDe, soDong, CAC_COT_CHI_TIET.length);
     }
 
-    // Cố định dòng tiêu đề, thêm bộ lọc và canh độ rộng cột theo nội dung
-    private void hoanThienSheet(Sheet sheet, int dongTieuDe, int dongCuoi, int soCot) {
-        sheet.createFreezePane(0, dongTieuDe + 1);
-        sheet.setAutoFilter(new CellRangeAddress(dongTieuDe, Math.max(dongTieuDe, dongCuoi), 0, soCot - 1));
-        for (int i = 0; i < soCot; i++) {
-            sheet.autoSizeColumn(i);
-            // Chừa thêm một chút lề, và không để cột rộng quá mức cho phép của Excel
-            sheet.setColumnWidth(i, Math.min(sheet.getColumnWidth(i) + 1024, 255 * 256));
+    // Sheet giải thích cách đọc báo cáo, tách riêng để không làm lệch bảng dữ liệu
+    private void veSheetGhiChu(Workbook sach, KieuO kieu, AttendanceReport baoCao) {
+        Sheet sheet = sach.createSheet("Ghi chú");
+        sheet.setColumnWidth(0, 110 * 256);
+
+        String[] cacDong = {
+                "BÁO CÁO CHẤM CÔNG THÁNG " + baoCao.thang(),
+                "Phạm vi: " + baoCao.phamVi(),
+                "Số ngày làm việc trong tháng: " + baoCao.soNgayLamViec()
+                        + " (thứ Hai đến thứ Sáu, chưa trừ ngày lễ).",
+                "Chưa chấm công: số ngày làm việc đã qua mà không có chấm công và không có đơn nghỉ đã duyệt. "
+                        + "Hệ thống chưa biết ngày lễ nên ngày lễ cũng nằm trong cột này, cần đối chiếu trước khi kết luận.",
+                "Giờ làm thêm: chỉ tính phần thực tế nằm trong khung giờ của lệnh làm thêm, ghi dạng số thập phân "
+                        + "(ví dụ 3,92 giờ là 3 giờ 55 phút).",
+                "Cảnh báo làm thêm: từ 180 giờ trở lên trong năm là gần chạm giới hạn, trên 200 giờ là vượt mức giới hạn thông thường."
+        };
+        for (int i = 0; i < cacDong.length; i++) {
+            Row dong = sheet.createRow(i);
+            datChu(dong, 0, cacDong[i], i == 0 ? kieu.tieuDe : kieu.chuXuongDong);
         }
     }
 
-    private void taoDongChu(Sheet sheet, int chiSoDong, String noiDung, CellStyle kieu) {
-        Row dong = sheet.createRow(chiSoDong);
-        datChu(dong, 0, noiDung, kieu);
+    // Thêm bộ lọc và canh độ rộng cột theo nội dung của bảng. Không cố định dòng tiêu đề
+    private void hoanThienSheet(Sheet sheet, int dongTieuDe, int dongCuoi, int soCot) {
+        sheet.setAutoFilter(new CellRangeAddress(dongTieuDe, Math.max(dongTieuDe, dongCuoi), 0, soCot - 1));
+        for (int i = 0; i < soCot; i++) {
+            sheet.autoSizeColumn(i);
+            // Chừa thêm một chút lề, và giới hạn độ rộng tối đa
+            int doRong = Math.min(sheet.getColumnWidth(i) + 1024, DO_RONG_TOI_DA * 256);
+            sheet.setColumnWidth(i, doRong);
+        }
     }
 
     private void taoDongTieuDe(Sheet sheet, int chiSoDong, String[] tenCot, CellStyle kieu) {
@@ -155,6 +170,7 @@ public class AttendanceExcelWriter {
         final CellStyle tieuDe;
         final CellStyle dauCot;
         final CellStyle chu;
+        final CellStyle chuXuongDong;
         final CellStyle soNguyen;
         final CellStyle soThapPhan;
         final CellStyle ngay;
@@ -176,6 +192,11 @@ public class AttendanceExcelWriter {
             dauCot.setAlignment(HorizontalAlignment.CENTER);
 
             chu = vien(sach);
+
+            // Dùng cho sheet Ghi chú: chữ dài tự xuống dòng thay vì tràn ra ngoài
+            chuXuongDong = sach.createCellStyle();
+            chuXuongDong.setWrapText(true);
+            chuXuongDong.setVerticalAlignment(VerticalAlignment.TOP);
 
             soNguyen = vien(sach);
             soNguyen.setDataFormat(sach.createDataFormat().getFormat("0"));
