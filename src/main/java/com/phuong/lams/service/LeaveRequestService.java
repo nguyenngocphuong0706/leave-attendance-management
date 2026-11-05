@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Year;
@@ -34,6 +35,8 @@ public class LeaveRequestService {
     private final LeaveBalanceRepository leaveBalanceRepository;
     private final LeaveTypeRepository leaveTypeRepository;
     private final UserRepository userRepository;
+    // Đồng hồ của ứng dụng, để kiểm thử đặt được ngày giờ giả
+    private final Clock clock;
 
     // Các đơn của người có email này, mới nhất lên đầu
     @Transactional(readOnly = true)
@@ -46,7 +49,7 @@ public class LeaveRequestService {
     // Các loại nghỉ người này được chọn khi xin nghỉ: đang dùng, áp dụng cho họ, kèm số ngày còn lại
     @Transactional(readOnly = true)
     public List<LeaveTypeOption> layLoaiNghiChoPhep(String email) {
-        return leaveBalanceRepository.layTheoEmailVaNam(email, Year.now().getValue()).stream()
+        return leaveBalanceRepository.layTheoEmailVaNam(email, Year.now(clock).getValue()).stream()
                 .filter(b -> b.getLeaveType().isActive()
                         && b.getLeaveType().getAppliesTo().apDungCho(b.getUser().getGender()))
                 .map(b -> new LeaveTypeOption(
@@ -66,7 +69,7 @@ public class LeaveRequestService {
         if (denNgay.isBefore(tuNgay)) {
             throw new BusinessException("endDate", "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu");
         }
-        if (tuNgay.isBefore(LocalDate.now())) {
+        if (tuNgay.isBefore(LocalDate.now(clock))) {
             throw new BusinessException("startDate", "Ngày bắt đầu không được ở quá khứ");
         }
         if (tuNgay.getYear() != denNgay.getYear()) {
