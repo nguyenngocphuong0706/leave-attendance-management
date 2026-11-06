@@ -122,7 +122,7 @@ class OvertimeServiceTest {
         BusinessException loi = biTuChoi("manager@lams.com",
                 bieuMau(1L, THU_TU, LocalTime.of(8, 0), LocalTime.of(12, 0)));
 
-        assertEquals("endTime", loi.getField());
+        assertEquals("workDate", loi.getField());
     }
 
     @Test
@@ -130,7 +130,7 @@ class OvertimeServiceTest {
         BusinessException loi = biTuChoi("manager@lams.com",
                 bieuMau(1L, THU_BAY, LocalTime.of(12, 0), LocalTime.of(8, 0)));
 
-        assertEquals("endDate".equals(loi.getField()) ? "endDate" : "endTime", loi.getField());
+        assertEquals("endTime", loi.getField());
     }
 
     @Test
